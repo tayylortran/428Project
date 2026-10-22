@@ -1,0 +1,2 @@
+Title: Data Preparation
+Machine learning projects begin by collecting data and checking quality. Missing values, duplicate records, and inconsistent formats can reduce model reliability. A common workflow separates training, validation, and test data to avoid data leakage.

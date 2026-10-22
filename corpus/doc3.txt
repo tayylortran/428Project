@@ -1,0 +1,2 @@
+Title: Classification Models
+Classification predicts discrete categories, such as spam or not spam. Decision trees, logistic regression, and neural networks can perform classification. Precision, recall, and accuracy are common evaluation metrics.

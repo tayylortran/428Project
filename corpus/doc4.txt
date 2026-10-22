@@ -1,0 +1,2 @@
+Title: Model Evaluation
+Model evaluation measures how well predictions generalize to new data. Cross-validation estimates performance across different subsets. Overfitting occurs when a model memorizes training examples rather than learning general patterns.

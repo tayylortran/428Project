@@ -1,0 +1,2 @@
+Title: Introduction to Machine Learning
+Machine learning is a branch of artificial intelligence that learns patterns from examples. Supervised learning uses labeled data to predict outcomes. Training data is used to fit a model, while test data estimates performance on unseen examples.
