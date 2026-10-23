@@ -4,8 +4,11 @@ This is a small local document-retrieval test project for CPTS 428 D2. There are
 
 Run from a clean checkout
 Requires Python 3. No API keys or extra Python packages are needed for mock mode.
+
 git clone https://github.com/tayylortran/428Project.git
+
 cd 428Project
+
 python -m harness.run --mock
 
 On Windows, py may be used instead of python.
