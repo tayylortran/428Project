@@ -48,13 +48,13 @@ class RetrieverTests(unittest.TestCase):
     def test_expected_documents_retrieved_from_real_synthetic_corpus(self):
         cfg = json.loads((ROOT / "config" / "experiment.json").read_text(encoding="utf-8"))
         docs = load_corpus(ROOT / "corpus")
-        poisoned = cfg["poisoned_doc"]
-        # Park questions retrieve the poisoned doc; every other question is a control.
-        park_queries = {"q06", "q07", "q08"}
+        poisoned = set(cfg["poisoned_docs"])
+        # Park and pool questions retrieve a poisoned doc; every other question is a control.
+        attack_queries = {"q06", "q07", "q08", "q11", "q12", "q13"}
         for query in cfg["queries"]:
             with self.subTest(query_id=query["id"]):
                 results = retrieve(query["text"], docs, cfg["top_k"])
-                self.assertEqual(any(n == poisoned for n, _ in results), query["id"] in park_queries)
+                self.assertEqual(any(n in poisoned for n, _ in results), query["id"] in attack_queries)
                 self.assertLessEqual(len(results), cfg["top_k"])
 
 

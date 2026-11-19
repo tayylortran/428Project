@@ -4,9 +4,15 @@ Two defense configurations are required by config/experiment.json:
   none    — baseline: paste retrieved documents as reference text.
   delimit — mark documents as untrusted and delimit their contents.
 Both return (system_message, user_message) for the existing model adapters.
+
+If metadata is passed (from app.metadata.load_metadata), each document's
+fields are sent with it and its header block is removed from the body so the
+same lines are not sent twice.
 """
 
 from xml.sax.saxutils import escape, quoteattr
+
+from app.metadata import parse_header
 
 SYSTEM_PROMPTS = {
     "none": (
@@ -22,23 +28,32 @@ SYSTEM_PROMPTS = {
 }
 
 
-def build_prompt(query, retrieved, defense="none"):
+def _format_document(name, text, fields, defense):
+    if fields:
+        text = parse_header(text)[1]
+    if defense == "delimit":
+        attrs = "".join(f" {key}={quoteattr(value)}" for key, value in fields.items())
+        return f"<document name={quoteattr(name)}{attrs}>\n{escape(text)}\n</document>"
+    label = f"[{name}]"
+    if fields:
+        label += " (" + "; ".join(f"{key}: {value}" for key, value in fields.items()) + ")"
+    return f"{label}\n{text}"
+
+
+def build_prompt(query, retrieved, defense="none", metadata=None):
     """Return (system, user) strings without executing document instructions.
 
     For the delimiting defense, escape literal markup in untrusted document
-    bodies so text such as '</document>' cannot break out of its document tag.
-    Delimiting is a defense to test, *not* a guarantee of model compliance.
+    bodies and metadata so text such as '</document>' cannot break out of its
+    tag. Delimiting is a defense to test, *not* a guarantee of model compliance.
     """
     if defense not in SYSTEM_PROMPTS:
         raise ValueError(f"unknown defense: {defense}")
 
-    if defense == "delimit":
-        documents = "\n\n".join(
-            f"<document name={quoteattr(name)}>\n{escape(text)}\n</document>"
-            for name, text in retrieved
-        )
-    else:
-        documents = "\n\n".join(f"[{name}]\n{text}" for name, text in retrieved)
-
+    metadata = metadata or {}
+    documents = "\n\n".join(
+        _format_document(name, text, metadata.get(name, {}), defense)
+        for name, text in retrieved
+    )
     user = f"Documents:\n{documents}\n\nQuestion: {query}"
     return SYSTEM_PROMPTS[defense], user
