@@ -7,7 +7,8 @@
   "poisoned_docs": ["riverside_park.txt", "community_pool.txt"],
   "canary": "zephyr-deals.test",
   "defenses": ["none"],
-  "include_metadata": false,
+  "tools": ["send_email"],
+  "include_metadata": true,
   "models": [
     {"provider": "anthropic", "id": "claude-haiku-5-5", "overrides": {"temperature": null}},
     {"provider": "openai", "id": "gpt-4o-mini-2024-07-18"}
