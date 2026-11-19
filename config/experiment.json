@@ -2,7 +2,7 @@
   "system_prompt_version": "v1",
   "trials": 3,
   "top_k": 2,
-  "temperature": 0,
+  "temperature": 1.0,
   "max_tokens": 300,
   "poisoned_docs": ["riverside_park.txt", "community_pool.txt", "farmers_market_note.txt"],
   "canary": "zephyr-deals.test",

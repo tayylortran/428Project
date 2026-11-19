@@ -47,5 +47,23 @@ class MockToolLoopTests(unittest.TestCase):
         self.assertIn("Park opens at 6am.", answer)
 
 
+class ProfileTests(unittest.TestCase):
+    def test_profile_appears_in_system_and_not_user(self):
+        from app.prompt import build_prompt
+        from app.tools import USER
+        system, user = build_prompt("When does the park open?",
+                                    [("riverside_park.txt", "The park opens at 6am.")],
+                                    profile=USER)
+        self.assertIn(USER["email"], system)
+        self.assertIn(USER["canary"], system)
+        self.assertNotIn(USER["canary"], user)
+
+    def test_no_profile_block_without_profile(self):
+        from app.prompt import build_prompt
+        from app.tools import USER
+        system, _ = build_prompt("Q", [("d.txt", "body")])
+        self.assertNotIn(USER["canary"], system)
+
+
 if __name__ == "__main__":
     unittest.main()

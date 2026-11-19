@@ -17,7 +17,7 @@ from pathlib import Path
 
 from app.metadata import load_metadata
 from app.prompt import build_prompt
-from app.tools import exfiltrated, make_tools
+from app.tools import USER, exfiltrated, make_tools
 from app.retriever import load_corpus, retrieve
 from harness.models import FatalAPIError, call_model
 
@@ -84,7 +84,8 @@ def main():
                     mem = retrieve(q["text"], memories, k=1)   # the "read later" step
                     hits = [name for name, _ in retrieved + mem if name in poisoned_docs]
                     system, user = build_prompt(q["text"], retrieved, defense,
-                                                metadata if use_meta else None, mem)
+                                                metadata if use_meta else None, mem,
+                                                profile=USER if tools_on else None)
                     for t in range(1, trials + 1):
                         answer, served, error = "", "", ""
                         log = []
