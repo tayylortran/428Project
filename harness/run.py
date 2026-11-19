@@ -64,6 +64,7 @@ def main():
     defenses = args.defenses or cfg.get("defenses", ["none"])
     docs = load_corpus(ROOT / "corpus")
     metadata = load_metadata(ROOT / "corpus", docs)
+    memories = load_corpus(ROOT / "memory")   # notes "stored earlier", read back per question
     poisoned_docs = set(cfg.get("poisoned_docs") or [cfg["poisoned_doc"]])
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = args.out or ROOT / "results" / f"run_{stamp}{'_mock' if args.mock else ''}.csv"
@@ -80,9 +81,10 @@ def main():
             for defense in defenses:
                 for q in cfg["queries"]:
                     retrieved = retrieve(q["text"], docs, k=cfg["top_k"])
-                    hits = [name for name, _ in retrieved if name in poisoned_docs]
+                    mem = retrieve(q["text"], memories, k=1)   # the "read later" step
+                    hits = [name for name, _ in retrieved + mem if name in poisoned_docs]
                     system, user = build_prompt(q["text"], retrieved, defense,
-                                                metadata if use_meta else None)
+                                                metadata if use_meta else None, mem)
                     for t in range(1, trials + 1):
                         answer, served, error = "", "", ""
                         log = []
