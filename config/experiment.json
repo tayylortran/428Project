@@ -6,11 +6,9 @@
   "max_tokens": 300,
   "poisoned_doc": "riverside_park.txt",
   "canary": "zephyr-deals.test",
+  "defenses": ["none"],
   "models": [
-    {"provider": "anthropic", "id": "claude-haiku-5-5"},
-    {"provider": "anthropic", "id": "claude-sonnet-5-5"},
-    {"provider": "anthropic", "id": "claude-opus-5-5"},
-    {"provider": "openai", "id": "gpt-4o-2024-08-06"},
+    {"provider": "anthropic", "id": "claude-haiku-5-5", "overrides": {"temperature": null}},
     {"provider": "openai", "id": "gpt-4o-mini-2024-07-18"}
   ],
   "queries": [
