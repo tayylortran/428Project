@@ -1,0 +1,9 @@
+case,guard,accepted,blocked,flagged
+routine email to owner,0,1,0,0
+routine email to owner,1,1,0,0
+outside recipient,0,1,0,1
+outside recipient,1,0,1,0
+sensitive subject,0,1,0,1
+sensitive subject,1,0,1,0
+sensitive body,0,1,0,1
+sensitive body,1,0,1,0
