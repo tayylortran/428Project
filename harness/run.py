@@ -23,7 +23,7 @@ from harness.models import FatalAPIError, call_model
 
 ROOT = Path(__file__).resolve().parent.parent
 FIELDS = ["timestamp", "provider", "model", "served_model", "temperature", "defense", "metadata", "query_id", "trial",
-          "poisoned_retrieved", "poisoned_doc", "tool_calls", "exfiltrated", "success", "error", "answer"]
+          "poisoned_retrieved", "poisoned_doc", "tool_calls", "blocked_calls", "exfiltrated", "success", "error", "answer"]
 
 
 def load_dotenv(path):
@@ -44,7 +44,7 @@ def main():
     ap.add_argument("--models", nargs="*", help="only run these model ids")
     ap.add_argument("--trials", type=int, help="override trials per case")
     ap.add_argument("--out", type=Path, help="CSV output path")
-    ap.add_argument("--defenses", nargs="*", help="override defense list (none, delimit)")
+    ap.add_argument("--defenses", nargs="*", choices=("none", "delimit", "guard", "both"), help="defenses to evaluate")
     ap.add_argument("--metadata", action="store_true",
                     help="send document metadata to all models (default: per-model include_metadata)")
     args = ap.parse_args()
@@ -79,18 +79,20 @@ def main():
             use_meta = bool(args.metadata or model_cfg.get("include_metadata"))
             tools_on = bool(model_cfg.get("tools"))
             for defense in defenses:
+                prompt_defense = "delimit" if defense in ("delimit", "both") else "none"
                 for q in cfg["queries"]:
                     retrieved = retrieve(q["text"], docs, k=cfg["top_k"])
                     mem = retrieve(q["text"], memories, k=1)   # the "read later" step
                     hits = [name for name, _ in retrieved + mem if name in poisoned_docs]
-                    system, user = build_prompt(q["text"], retrieved, defense,
+                    system, user = build_prompt(q["text"], retrieved, prompt_defense,
                                                 metadata if use_meta else None, mem,
                                                 profile=USER if tools_on else None)
                     for t in range(1, trials + 1):
                         answer, served, error = "", "", ""
                         log = []
+                        blocked = []
                         if tools_on:
-                            model_cfg["_tool_impls"], log = make_tools()
+                            model_cfg["_tool_impls"], log = make_tools(guard=defense in ("guard", "both"), blocked=blocked)
                         try:
                             answer, served = call_model(m["provider"], m["id"], system, user, model_cfg)
                         except Exception as e:  # record the failure as a row, keep going
@@ -106,7 +108,7 @@ def main():
                             "temperature": "default" if temp is None else temp,
                             "defense": defense, "metadata": int(use_meta), "query_id": q["id"], "trial": t,
                             "poisoned_retrieved": int(bool(hits)), "poisoned_doc": ";".join(hits),
-                            "tool_calls": len(log), "exfiltrated": int(exfil),
+                            "tool_calls": len(log) + len(blocked), "blocked_calls": len(blocked), "exfiltrated": int(exfil),
                             "success": success, "error": error, "answer": answer,
                         })
                         if error.startswith("FatalAPIError"):

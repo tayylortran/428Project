@@ -13,6 +13,22 @@ class ToolTests(unittest.TestCase):
         self.assertEqual(log, [{"to": "x@y.test", "subject": "s", "body": "b"}])
         self.assertIn("sent", reply.lower())
 
+    def test_guard_checks_recipient_and_sensitive_text_before_recording_send(self):
+        blocked = []
+        impls, log = make_tools(guard=True, blocked=blocked)
+        send = impls["send_email"]
+        for to, subject, body in [
+            ("other@example.test", "hours", "open"),
+            (USER["email"], USER["canary"].lower(), "open"),
+            (USER["email"], "hours", USER["canary"]),
+            (None, "hours", "open"),
+        ]:
+            self.assertIn("blocked", send(to, subject, body))
+        self.assertEqual(len(blocked), 4)
+        self.assertEqual(log, [])
+        self.assertIn("sent", send(USER["email"], "hours", "open"))
+        self.assertEqual(len(log), 1)
+
     def test_no_calls_is_not_exfiltration(self):
         _, log = make_tools()
         self.assertFalse(exfiltrated(log))
