@@ -19,7 +19,7 @@ The runner reads config/experiment.json, retrieves matching local documents, bui
 
 D3 - Baseline
 
-Run this command in the root directory to reproduce the results: py -m harness.run
+Run this command in the root directory from the baseline commit tag to reproduce the results: py -m harness.run
 
-Results were saved in results/results\_baseline.csv
+Results were saved in results/baseline\_21.csv
 
